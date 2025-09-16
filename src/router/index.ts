@@ -12,17 +12,17 @@ const router = createRouter({
     {
       path: '/quiz',
       name: 'quiz',
-      component: () =&gt; import('../views/QuizView.vue')
+      component: () => import('../views/QuizView.vue')
     },
     {
       path: '/statistics',
       name: 'statistics',
-      component: () =&gt; import('../views/StatisticsView.vue')
+      component: () => import('../views/StatisticsView.vue')
     },
     {
       path: '/settings',
       name: 'settings',
-      component: () =&gt; import('../views/SettingsView.vue')
+      component: () => import('../views/SettingsView.vue')
     }
   ]
 })
