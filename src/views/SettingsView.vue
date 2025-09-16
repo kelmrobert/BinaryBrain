@@ -2,14 +2,16 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
-import { testApiKey } from '@/utils/openai'
+import { testApiKey, testApiConnection } from '@/utils/openai'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
 
 const apiKeyInput = ref(settingsStore.openaiApiKey)
 const isTestingApiKey = ref(false)
+const isTestingConnection = ref(false)
 const apiKeyTestResult = ref<string | null>(null)
+const connectionTestResult = ref<string | null>(null)
 const showApiKey = ref(false)
 
 const maskedApiKey = computed(() => {
@@ -20,6 +22,7 @@ const maskedApiKey = computed(() => {
 function saveApiKey() {
   settingsStore.setOpenaiApiKey(apiKeyInput.value)
   apiKeyTestResult.value = null
+  connectionTestResult.value = null
 }
 
 async function testApiKeyConnection() {
@@ -44,6 +47,30 @@ async function testApiKeyConnection() {
     apiKeyTestResult.value = 'Fehler beim Testen des API-Schlüssels'
   } finally {
     isTestingApiKey.value = false
+  }
+}
+
+async function testFullConnection() {
+  if (!apiKeyInput.value.trim()) {
+    connectionTestResult.value = 'Bitte geben Sie einen API-Schlüssel ein.'
+    return
+  }
+
+  isTestingConnection.value = true
+  connectionTestResult.value = null
+
+  try {
+    const result = await testApiConnection(apiKeyInput.value.trim())
+
+    connectionTestResult.value = result.success ? result.data : result.error
+
+    if (result.success) {
+      saveApiKey()
+    }
+  } catch (error) {
+    connectionTestResult.value = 'Fehler beim Testen der API-Verbindung'
+  } finally {
+    isTestingConnection.value = false
   }
 }
 
@@ -105,7 +132,7 @@ function goBack() {
                   :type="showApiKey ? 'text' : 'password'"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="sk-..."
-                  @input="apiKeyTestResult = null"
+                  @input="apiKeyTestResult = null; connectionTestResult = null"
                 >
                 <button
                   @click="showApiKey = !showApiKey"
@@ -124,6 +151,14 @@ function goBack() {
               <p class="text-xs text-gray-500 mt-1">
                 Ihr OpenAI API-Schlüssel für KI-Erklärungen. Erhalten Sie einen unter <a href="https://platform.openai.com/api-keys" target="_blank" class="text-primary hover:underline">platform.openai.com</a>
               </p>
+              <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-xs text-blue-800 font-medium mb-1">🤖 Empfohlene Modelle (2025):</p>
+                <div class="text-xs text-blue-700 space-y-1">
+                  <p><strong>gpt-4o-mini:</strong> Kostengünstig, schnell (Standard)</p>
+                  <p><strong>gpt-4o:</strong> Beste Qualität, multimodal</p>
+                  <p><strong>gpt-5:</strong> Neuestes Flaggschiff-Modell</p>
+                </div>
+              </div>
             </div>
 
             <!-- API Key Status -->
@@ -134,12 +169,20 @@ function goBack() {
               API-Schlüssel konfiguriert
             </div>
 
-            <!-- Test Result -->
+            <!-- Test Results -->
             <div v-if="apiKeyTestResult"
               class="p-3 rounded-lg text-sm"
               :class="apiKeyTestResult.includes('gültig') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'"
             >
               {{ apiKeyTestResult }}
+            </div>
+
+            <!-- Detailed Connection Test Result -->
+            <div v-if="connectionTestResult"
+              class="p-4 rounded-lg text-sm font-mono whitespace-pre-line"
+              :class="connectionTestResult.includes('✅') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'"
+            >
+              {{ connectionTestResult }}
             </div>
 
             <!-- Buttons -->
@@ -160,7 +203,19 @@ function goBack() {
                   <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
                   Teste...
                 </span>
-                <span v-else>Verbindung testen</span>
+                <span v-else>Schnelltest</span>
+              </button>
+
+              <button
+                @click="testFullConnection"
+                :disabled="isTestingConnection || !apiKeyInput.trim()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                <span v-if="isTestingConnection" class="flex items-center">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Teste...
+                </span>
+                <span v-else>🔍 Detailtest</span>
               </button>
             </div>
           </div>

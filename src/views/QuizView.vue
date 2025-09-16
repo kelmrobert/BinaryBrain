@@ -4,15 +4,14 @@ import { useRouter } from 'vue-router'
 import { useQuizStore } from '@/stores/quiz'
 import { useSettingsStore } from '@/stores/settings'
 import QuestionCard from '@/components/quiz/QuestionCard.vue'
-import ExplanationModal from '@/components/common/ExplanationModal.vue'
 
 const router = useRouter()
 const quizStore = useQuizStore()
 const settingsStore = useSettingsStore()
 
-const showExplanationModal = ref(false)
 const currentAnswer = ref<boolean | null>(null)
 const showFeedback = ref(false)
+const questionCardRef = ref<InstanceType<typeof QuestionCard>>()
 
 const currentQuestion = computed(() => quizStore.currentQuestion)
 const questionNumber = computed(() => quizStore.currentQuestionIndex + 1)
@@ -72,6 +71,13 @@ function handleAnswer(answer: boolean) {
   showFeedback.value = true
 
   const isCorrect = quizStore.answerQuestion(answer)
+
+  // Auto-request explanation for wrong answers after a short delay
+  if (!isCorrect && settingsStore.hasValidApiKey) {
+    setTimeout(() => {
+      questionCardRef.value?.autoRequestExplanation()
+    }, 800) // Small delay to let the user see the result first
+  }
 }
 
 function goToPrevious() {
@@ -101,13 +107,6 @@ function resetQuiz() {
   }
 }
 
-function showExplanation() {
-  showExplanationModal.value = true
-}
-
-function closeExplanation() {
-  showExplanationModal.value = false
-}
 
 function handleKeydown(event: KeyboardEvent) {
   // Let the QuestionCard handle its own keyboard events
@@ -131,6 +130,7 @@ function handleKeydown(event: KeyboardEvent) {
     <div v-else class="container mx-auto px-4">
       <!-- Question Card -->
       <QuestionCard
+        ref="questionCardRef"
         :question="currentQuestion"
         :question-number="questionNumber"
         :total-questions="totalQuestions"
@@ -140,7 +140,6 @@ function handleKeydown(event: KeyboardEvent) {
         :can-go-next="canGoForward"
         :is-last-question="isLastQuestion"
         @answer="handleAnswer"
-        @request-explanation="showExplanation"
         @next="goToNext"
         @finish="finishQuiz"
       />
@@ -158,12 +157,5 @@ function handleKeydown(event: KeyboardEvent) {
         </button>
       </div>
     </div>
-
-    <!-- Explanation Modal -->
-    <ExplanationModal
-      :is-open="showExplanationModal"
-      :question="currentQuestion"
-      @close="closeExplanation"
-    />
   </main>
 </template>
