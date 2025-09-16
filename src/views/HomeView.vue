@@ -1,10 +1,9 @@
 &lt;script setup lang="ts"&gt;
-//
+import FileUpload from '@/components/upload/FileUpload.vue'
 &lt;/script&gt;
 
 &lt;template&gt;
-  &lt;main&gt;
-    &lt;h1&gt;Binary Brain&lt;/h1&gt;
-    &lt;p&gt;Welcome to Binary Brain - Your True/False Quiz Learning App&lt;/p&gt;
+  &lt;main class="min-h-screen bg-gray-50 py-8"&gt;
+    &lt;FileUpload /&gt;
   &lt;/main&gt;
 &lt;/template&gt;
