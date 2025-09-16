@@ -150,7 +150,7 @@ function handleKeydown(event: KeyboardEvent) {
 &lt;/script&gt;
 
 &lt;template&gt;
-  &lt;main class="min-h-screen bg-gray-50 py-8"&gt;
+  &lt;main class="py-8"&gt;
     &lt;div v-if="!currentQuestion" class="text-center py-16"&gt;
       &lt;h2 class="text-2xl font-bold text-gray-900 mb-4"&gt;Kein Quiz aktiv&lt;/h2&gt;
       &lt;p class="text-gray-600 mb-6"&gt;Bitte laden Sie zuerst Fragen hoch, um ein Quiz zu starten.&lt;/p&gt;
