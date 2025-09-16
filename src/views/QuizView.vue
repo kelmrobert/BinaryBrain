@@ -1,4 +1,4 @@
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuizStore } from '@/stores/quiz'
@@ -12,28 +12,28 @@ const quizStore = useQuizStore()
 const settingsStore = useSettingsStore()
 
 const showExplanationModal = ref(false)
-const currentAnswer = ref&lt;boolean | null&gt;(null)
+const currentAnswer = ref<boolean | null>(null)
 const showFeedback = ref(false)
 
-const currentQuestion = computed(() =&gt; quizStore.currentQuestion)
-const questionNumber = computed(() =&gt; quizStore.currentQuestionIndex + 1)
-const totalQuestions = computed(() =&gt; quizStore.totalQuestions)
-const canGoBack = computed(() =&gt; quizStore.hasPreviousQuestion)
-const canGoForward = computed(() =&gt; currentAnswer.value !== null)
-const isLastQuestion = computed(() =&gt; !quizStore.hasNextQuestion)
+const currentQuestion = computed(() => quizStore.currentQuestion)
+const questionNumber = computed(() => quizStore.currentQuestionIndex + 1)
+const totalQuestions = computed(() => quizStore.totalQuestions)
+const canGoBack = computed(() => quizStore.hasPreviousQuestion)
+const canGoForward = computed(() => currentAnswer.value !== null)
+const isLastQuestion = computed(() => !quizStore.hasNextQuestion)
 
-const currentUserAnswer = computed(() =&gt; {
+const currentUserAnswer = computed(() => {
   if (!currentQuestion.value) return null
   const answer = quizStore.getAnswerForQuestion(currentQuestion.value.id)
   return answer?.userAnswer ?? null
 })
 
-const isCurrentAnswerCorrect = computed(() =&gt; {
+const isCurrentAnswerCorrect = computed(() => {
   if (!currentQuestion.value || currentAnswer.value === null) return null
   return currentAnswer.value === currentQuestion.value.correctAnswer
 })
 
-onMounted(() =&gt; {
+onMounted(() => {
   // Redirect if no quiz is active
   if (!quizStore.isQuizActive || quizStore.totalQuestions === 0) {
     router.push('/')
@@ -49,7 +49,7 @@ onMounted(() =&gt; {
   }
 })
 
-onUnmounted(() =&gt; {
+onUnmounted(() => {
   if (settingsStore.keyboardNavigation) {
     document.removeEventListener('keydown', handleKeydown)
   }
@@ -73,7 +73,7 @@ function handleAnswer(answer: boolean) {
   const isCorrect = quizStore.answerQuestion(answer)
 
   // Add some delay for better UX
-  setTimeout(() =&gt; {
+  setTimeout(() => {
     // Auto-advance to next question after a short delay if enabled
     // This could be made configurable in settings
   }, 1000)
@@ -147,24 +147,24 @@ function handleKeydown(event: KeyboardEvent) {
       break
   }
 }
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;main class="py-8"&gt;
-    &lt;div v-if="!currentQuestion" class="text-center py-16"&gt;
-      &lt;h2 class="text-2xl font-bold text-gray-900 mb-4"&gt;Kein Quiz aktiv&lt;/h2&gt;
-      &lt;p class="text-gray-600 mb-6"&gt;Bitte laden Sie zuerst Fragen hoch, um ein Quiz zu starten.&lt;/p&gt;
-      &lt;button
+<template>
+  <main class="py-8">
+    <div v-if="!currentQuestion" class="text-center py-16">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">Kein Quiz aktiv</h2>
+      <p class="text-gray-600 mb-6">Bitte laden Sie zuerst Fragen hoch, um ein Quiz zu starten.</p>
+      <button
         @click="router.push('/')"
         class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200"
-      &gt;
+      >
         Zur Startseite
-      &lt;/button&gt;
-    &lt;/div&gt;
+      </button>
+    </div>
 
-    &lt;div v-else class="container mx-auto px-4"&gt;
-      &lt;!-- Question Card --&gt;
-      &lt;QuestionCard
+    <div v-else class="container mx-auto px-4">
+      <!-- Question Card -->
+      <QuestionCard
         :question="currentQuestion"
         :question-number="questionNumber"
         :total-questions="totalQuestions"
@@ -173,11 +173,11 @@ function handleKeydown(event: KeyboardEvent) {
         :is-correct="isCurrentAnswerCorrect"
         @answer="handleAnswer"
         @request-explanation="showExplanation"
-      /&gt;
+      />
 
-      &lt;!-- Navigation --&gt;
-      &lt;div class="max-w-3xl mx-auto"&gt;
-        &lt;QuizNavigation
+      <!-- Navigation -->
+      <div class="max-w-3xl mx-auto">
+        <QuizNavigation
           :can-go-back="canGoBack"
           :can-go-forward="canGoForward"
           :show-next-button="!isLastQuestion"
@@ -186,27 +186,27 @@ function handleKeydown(event: KeyboardEvent) {
           @next="goToNext"
           @finish="finishQuiz"
           @reset="resetQuiz"
-        /&gt;
-      &lt;/div&gt;
+        />
+      </div>
 
-      &lt;!-- Keyboard Navigation Hint --&gt;
-      &lt;div v-if="settingsStore.keyboardNavigation" class="max-w-3xl mx-auto mt-8"&gt;
-        &lt;div class="bg-blue-50 border border-blue-200 rounded-lg p-4"&gt;
-          &lt;h4 class="font-medium text-blue-900 mb-2"&gt;Tastatur-Navigation:&lt;/h4&gt;
-          &lt;div class="text-sm text-blue-800 space-y-1"&gt;
-            &lt;p&gt;&lt;strong&gt;←/→:&lt;/strong&gt; Nein/Ja antworten&lt;/p&gt;
-            &lt;p&gt;&lt;strong&gt;↑/↓:&lt;/strong&gt; Vorherige/Nächste Frage&lt;/p&gt;
-            &lt;p&gt;&lt;strong&gt;Enter/Space:&lt;/strong&gt; Nächste Frage&lt;/p&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+      <!-- Keyboard Navigation Hint -->
+      <div v-if="settingsStore.keyboardNavigation" class="max-w-3xl mx-auto mt-8">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 class="font-medium text-blue-900 mb-2">Tastatur-Navigation:</h4>
+          <div class="text-sm text-blue-800 space-y-1">
+            <p><strong>←/→:</strong> Nein/Ja antworten</p>
+            <p><strong>↑/↓:</strong> Vorherige/Nächste Frage</p>
+            <p><strong>Enter/Space:</strong> Nächste Frage</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    &lt;!-- Explanation Modal --&gt;
-    &lt;ExplanationModal
+    <!-- Explanation Modal -->
+    <ExplanationModal
       :is-open="showExplanationModal"
       :question="currentQuestion"
       @close="closeExplanation"
-    /&gt;
-  &lt;/main&gt;
-&lt;/template&gt;
+    />
+  </main>
+</template>

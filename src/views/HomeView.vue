@@ -1,9 +1,9 @@
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 import FileUpload from '@/components/upload/FileUpload.vue'
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;main class="py-8"&gt;
-    &lt;FileUpload /&gt;
-  &lt;/main&gt;
-&lt;/template&gt;
+<template>
+  <main class="py-8">
+    <FileUpload />
+  </main>
+</template>

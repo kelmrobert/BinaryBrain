@@ -1,17 +1,17 @@
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 import { RouterView } from 'vue-router'
 import AppNavigation from '@/components/common/AppNavigation.vue'
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;div id="app" class="min-h-screen bg-gray-50"&gt;
-    &lt;AppNavigation /&gt;
-    &lt;RouterView /&gt;
-  &lt;/div&gt;
-&lt;/template&gt;
+<template>
+  <div id="app" class="min-h-screen bg-gray-50">
+    <AppNavigation />
+    <RouterView />
+  </div>
+</template>
 
-&lt;style scoped&gt;
+<style scoped>
 #app {
   min-height: 100vh;
 }
-&lt;/style&gt;
+</style>
