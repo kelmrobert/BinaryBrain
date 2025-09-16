@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useQuizStore } from '@/stores/quiz'
 import { useSettingsStore } from '@/stores/settings'
 import QuestionCard from '@/components/quiz/QuestionCard.vue'
-import QuizNavigation from '@/components/quiz/QuizNavigation.vue'
 import ExplanationModal from '@/components/common/ExplanationModal.vue'
 
 const router = useRouter()
@@ -67,16 +66,12 @@ function loadCurrentAnswer() {
 }
 
 function handleAnswer(answer: boolean) {
+  if (showFeedback.value) return // Prevent multiple answers
+
   currentAnswer.value = answer
   showFeedback.value = true
 
   const isCorrect = quizStore.answerQuestion(answer)
-
-  // Add some delay for better UX
-  setTimeout(() => {
-    // Auto-advance to next question after a short delay if enabled
-    // This could be made configurable in settings
-  }, 1000)
 }
 
 function goToPrevious() {
@@ -115,37 +110,8 @@ function closeExplanation() {
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  // Prevent default browser behavior for quiz navigation keys
-  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(event.key)) {
-    event.preventDefault()
-  }
-
-  switch (event.key) {
-    case 'ArrowLeft':
-      if (!showFeedback.value) {
-        handleAnswer(false)
-      }
-      break
-    case 'ArrowRight':
-      if (!showFeedback.value) {
-        handleAnswer(true)
-      }
-      break
-    case 'ArrowUp':
-      goToPrevious()
-      break
-    case 'ArrowDown':
-    case 'Enter':
-      if (canGoForward.value) {
-        goToNext()
-      }
-      break
-    case ' ':
-      if (canGoForward.value) {
-        goToNext()
-      }
-      break
-  }
+  // Let the QuestionCard handle its own keyboard events
+  // This is mainly for global quiz navigation if needed
 }
 </script>
 
@@ -171,34 +137,25 @@ function handleKeydown(event: KeyboardEvent) {
         :show-feedback="showFeedback"
         :user-answer="currentAnswer"
         :is-correct="isCurrentAnswerCorrect"
+        :can-go-next="canGoForward"
+        :is-last-question="isLastQuestion"
         @answer="handleAnswer"
         @request-explanation="showExplanation"
+        @next="goToNext"
+        @finish="finishQuiz"
       />
 
-      <!-- Navigation -->
-      <div class="max-w-3xl mx-auto">
-        <QuizNavigation
-          :can-go-back="canGoBack"
-          :can-go-forward="canGoForward"
-          :show-next-button="!isLastQuestion"
-          :show-finish-button="isLastQuestion && currentAnswer !== null"
-          @previous="goToPrevious"
-          @next="goToNext"
-          @finish="finishQuiz"
-          @reset="resetQuiz"
-        />
-      </div>
-
-      <!-- Keyboard Navigation Hint -->
-      <div v-if="settingsStore.keyboardNavigation" class="max-w-3xl mx-auto mt-8">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 class="font-medium text-blue-900 mb-2">Tastatur-Navigation:</h4>
-          <div class="text-sm text-blue-800 space-y-1">
-            <p><strong>←/→:</strong> Nein/Ja antworten</p>
-            <p><strong>↑/↓:</strong> Vorherige/Nächste Frage</p>
-            <p><strong>Enter/Space:</strong> Nächste Frage</p>
-          </div>
-        </div>
+      <!-- Optional: Previous question button if needed -->
+      <div v-if="canGoBack" class="max-w-4xl mx-auto mt-6 text-center">
+        <button
+          @click="goToPrevious"
+          class="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Vorherige Frage
+        </button>
       </div>
     </div>
 

@@ -43,6 +43,13 @@ const navItems = computed(() => [
 
 function navigateTo(path: string, disabled?: boolean) {
   if (disabled) return
+
+  // Special handling for quiz navigation
+  if (path === '/quiz' && hasQuestions.value && !isQuizActive.value) {
+    // Auto-start quiz if questions are loaded but quiz isn't active
+    quizStore.startQuiz()
+  }
+
   router.push(path)
 }
 </script>
