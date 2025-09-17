@@ -72,6 +72,9 @@ function handleAnswer(answer: boolean) {
 
   const isCorrect = quizStore.answerQuestion(answer)
 
+  // Auto-save quiz state after answering
+  quizStore.saveQuizState().catch(console.error)
+
   // Auto-request explanation for wrong answers after a short delay
   if (!isCorrect && settingsStore.hasValidApiKey) {
     setTimeout(() => {
@@ -82,12 +85,16 @@ function handleAnswer(answer: boolean) {
 
 function goToPrevious() {
   if (quizStore.previousQuestion()) {
+    // Auto-save when moving between questions
+    quizStore.saveQuizState().catch(console.error)
     loadCurrentAnswer()
   }
 }
 
 function goToNext() {
   if (quizStore.nextQuestion()) {
+    // Auto-save when moving between questions
+    quizStore.saveQuizState().catch(console.error)
     loadCurrentAnswer()
   } else {
     // Quiz completed, redirect to statistics
@@ -97,12 +104,14 @@ function goToNext() {
 
 function finishQuiz() {
   quizStore.completeQuiz()
+  // Save final quiz state
+  quizStore.saveQuizState().catch(console.error)
   router.push('/statistics')
 }
 
-function resetQuiz() {
+async function resetQuiz() {
   if (confirm('Sind Sie sicher, dass Sie das Quiz zurücksetzen möchten? Alle Antworten gehen verloren.')) {
-    quizStore.resetQuiz()
+    await quizStore.clearPersistedData()
     router.push('/')
   }
 }

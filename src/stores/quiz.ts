@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Question, UserAnswer, QuizStatistics } from '@/types'
+import type { Question, UserAnswer, QuizStatistics, PersistedQuizData } from '@/types'
+import { filePersistenceManager } from '@/utils/filePersistence'
 
 export const useQuizStore = defineStore('quiz', () => {
   // State
@@ -11,6 +12,7 @@ export const useQuizStore = defineStore('quiz', () => {
   const isQuizCompleted = ref(false)
   const startTime = ref<Date | null>(null)
   const endTime = ref<Date | null>(null)
+  const persistedFile = ref<any>(null)
 
   // Getters
   const currentQuestion = computed(() =>
@@ -142,6 +144,7 @@ export const useQuizStore = defineStore('quiz', () => {
   function clearQuestions() {
     questions.value = []
     resetQuiz()
+    persistedFile.value = null
   }
 
   function getAnswerForQuestion(questionId: string) {
@@ -152,6 +155,107 @@ export const useQuizStore = defineStore('quiz', () => {
     return answers.value.some(answer => answer.questionId === questionId)
   }
 
+  // Persistence functions
+  async function saveQuizState(): Promise<void> {
+    if (!persistedFile.value || questions.value.length === 0) return
+
+    const quizData: PersistedQuizData = {
+      file: persistedFile.value,
+      questions: questions.value,
+      quizState: {
+        currentQuestionIndex: currentQuestionIndex.value,
+        answers: answers.value,
+        isQuizActive: isQuizActive.value,
+        isQuizCompleted: isQuizCompleted.value,
+        startTime: startTime.value,
+        endTime: endTime.value
+      },
+      lastModified: new Date()
+    }
+
+    try {
+      await filePersistenceManager.saveQuizData(quizData)
+    } catch (error) {
+      console.error('Failed to save quiz state:', error)
+      throw error
+    }
+  }
+
+  function loadPersistedQuizData(): boolean {
+    try {
+      const persistedData = filePersistenceManager.loadQuizData()
+      if (!persistedData) return false
+
+      // Restore quiz state
+      questions.value = persistedData.questions
+      persistedFile.value = persistedData.file
+
+      if (persistedData.quizState) {
+        currentQuestionIndex.value = persistedData.quizState.currentQuestionIndex
+        answers.value = persistedData.quizState.answers
+        isQuizActive.value = persistedData.quizState.isQuizActive
+        isQuizCompleted.value = persistedData.quizState.isQuizCompleted
+        startTime.value = persistedData.quizState.startTime
+        endTime.value = persistedData.quizState.endTime
+      }
+
+      return true
+    } catch (error) {
+      console.error('Failed to load persisted quiz data:', error)
+      return false
+    }
+  }
+
+  function hasPersistedData(): boolean {
+    return filePersistenceManager.hasPersistedData()
+  }
+
+  async function clearPersistedData(): Promise<void> {
+    try {
+      await filePersistenceManager.clearPersistedData()
+      clearQuestions()
+    } catch (error) {
+      console.error('Failed to clear persisted data:', error)
+      throw error
+    }
+  }
+
+  function setPersistedFile(file: any): void {
+    persistedFile.value = file
+  }
+
+  // Auto-save on quiz state changes
+  function setupAutoSave() {
+    // Save state when answers change
+    const originalAnswerQuestion = answerQuestion
+    function answerQuestionWithSave(answer: boolean) {
+      const result = originalAnswerQuestion(answer)
+      saveQuizState().catch(console.error)
+      return result
+    }
+
+    // Save state when moving between questions
+    const originalNextQuestion = nextQuestion
+    function nextQuestionWithSave() {
+      const result = originalNextQuestion()
+      saveQuizState().catch(console.error)
+      return result
+    }
+
+    const originalPreviousQuestion = previousQuestion
+    function previousQuestionWithSave() {
+      const result = originalPreviousQuestion()
+      saveQuizState().catch(console.error)
+      return result
+    }
+
+    return {
+      answerQuestion: answerQuestionWithSave,
+      nextQuestion: nextQuestionWithSave,
+      previousQuestion: previousQuestionWithSave
+    }
+  }
+
   return {
     // State
     questions,
@@ -159,6 +263,7 @@ export const useQuizStore = defineStore('quiz', () => {
     answers,
     isQuizActive,
     isQuizCompleted,
+    persistedFile,
 
     // Getters
     currentQuestion,
@@ -183,6 +288,14 @@ export const useQuizStore = defineStore('quiz', () => {
     resetQuiz,
     clearQuestions,
     getAnswerForQuestion,
-    isQuestionAnswered
+    isQuestionAnswered,
+
+    // Persistence actions
+    saveQuizState,
+    loadPersistedQuizData,
+    hasPersistedData,
+    clearPersistedData,
+    setPersistedFile,
+    setupAutoSave
   }
 })

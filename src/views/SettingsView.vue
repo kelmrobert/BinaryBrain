@@ -62,7 +62,7 @@ async function testFullConnection() {
   try {
     const result = await testApiConnection(apiKeyInput.value.trim())
 
-    connectionTestResult.value = result.success ? result.data : result.error
+    connectionTestResult.value = result.success ? result.data || null : result.error || null
 
     if (result.success) {
       saveApiKey()
