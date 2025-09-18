@@ -13,7 +13,7 @@ A modern web-based True/False quiz application designed to help students study e
 
 ## Quick Start 🚀
 
-Copy `.env.example` to `.env` and add your OpenAI API key, then run `docker compose up -d` to start the application. The app will be available at `http://localhost`.
+Copy `.env.example` to `.env` and add your OpenAI API key, then run `docker compose up -d` to start the application. The app will be available at `http://localhost:3001`.
 
 ## File Format 📋
 
